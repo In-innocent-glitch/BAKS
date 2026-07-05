@@ -549,9 +549,14 @@ case 25:
 }
 
 function endGame(){
-  running=false;
-  document.getElementById('dcount').innerText=`Total Deaths: ${totalDeaths}`;
-  document.getElementById('outro').style.display='flex';
+  running = false;
+
+  // Reset everything for a new game
+  resetProgress();
+  skipsUsed = 0;
+
+  document.getElementById('dcount').innerText = `Total Deaths: ${totalDeaths}`;
+  document.getElementById('outro').style.display = 'flex';
 }
 
 // TRAP TICK
@@ -1043,8 +1048,20 @@ case 25: {
 function startGame(){
   document.getElementById('intro').style.display='none';
   document.getElementById('outro').style.display='none';
-  totalDeaths=0; running=true;
-  loadStage(getSavedLevel());
+ totalDeaths = 0;
+stageDeath = 0;
+running = true;
+
+// If previous game was completed, start from Stage 1
+let level = getSavedLevel();
+
+if(level > MAX_STAGE){
+    resetProgress();
+    skipsUsed = 0;
+    level = 1;
+}
+
+loadStage(level);
   if(raf)cancelAnimationFrame(raf);
   raf=requestAnimationFrame(loop);
 }
