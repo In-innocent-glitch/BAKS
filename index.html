@@ -129,6 +129,8 @@ function resetProgress(){
 
 // STATE
 let stage=0, totalDeaths=0, stageDeath=0;
+let skipsUsed = 0;
+const MAX_SKIPS = 2;
 let plats=[], traps=[], door={x:740,y:330,w:38,h:58};
 let hint='', flash='', flashT=0;
 let trapOn=false, lvData={};
@@ -137,16 +139,23 @@ const skipBtn=document.getElementById("skipBtn");
 
 skipBtn.onclick=function(){
 
-    saveProgress(Math.min(stage+1,MAX_STAGE));
+    if(skipsUsed >= MAX_SKIPS){
+        skipBtn.style.display = "none";
+        return;
+    }
 
-    stageDeath=0;
+    skipsUsed++;
 
-    skipBtn.style.display="none";
+    saveProgress(Math.min(stage+1, MAX_STAGE));
+
+    stageDeath = 0;
+
+    skipBtn.style.display = "none";
+
+    setFlash(`⏭ Skip ${skipsUsed}/${MAX_SKIPS}`);
 
     loadStage(stage+1);
-
 };
-
 // ENTITIES
 function mkE(x,y,w,h,sp,jp){return{x,y,vx:0,vy:0,w,h,sp:sp||SPD,jp:jp||JP,g:false};}
 let baks, gago;
@@ -178,8 +187,8 @@ function hit(e,r){return e.x<r.x+r.w&&e.x+e.w>r.x&&e.y<r.y+r.h&&e.y+e.h>r.y}
 // KILL
 function kill(){
   totalDeaths++; stageDeath++;
-  if(stageDeath>=20){
-    skipBtn.style.display="block";
+ if(stageDeath>=20 && skipsUsed < MAX_SKIPS){
+    skipBtn.style.display = "block";
 }
   setFlash('WASTED! ☠');
   reloadStage();
@@ -1151,6 +1160,8 @@ function drawHUD(){
   cx.fillText(`STAGE ${stage}/25`,10,20);
   cx.fillStyle='#888';cx.font="12px 'Courier New'";
   cx.fillText(`☠ ${totalDeaths}`,10,38);
+  cx.fillStyle='#66ff66';
+  cx.fillText(`Skips Left: ${MAX_SKIPS - skipsUsed}`,10,70);
   cx.fillStyle='#555';
   cx.fillText(`Tries: ${stageDeath}`,10,54);
 
