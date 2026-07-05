@@ -81,6 +81,12 @@ h1{font-size:24px;color:#ff3333;margin-bottom:12px;letter-spacing:2px;text-shado
     <button class="go" style="margin-top:16px" onclick="startGame()">PLAY AGAIN</button>
   </div>
 </div>
+<button id="skipBtn"
+style="display:none;position:absolute;top:15px;right:15px;
+padding:10px 18px;background:#ff3333;color:#fff;
+border:none;border-radius:6px;cursor:pointer;z-index:999;">
+SKIP LEVEL
+</button>
 <div id="ctrl">
   <div class="dpad">
     <div class="btn" id="bL">◀</div>
@@ -109,6 +115,17 @@ mkBtn('bL','ArrowLeft'); mkBtn('bR','ArrowRight'); mkBtn('bJ','Space');
 
 // CONSTANTS
 const G=0.52, FR=0.82, SPD=5, JP=11.2, MAX_STAGE=25;
+function saveProgress(level){
+    localStorage.setItem("gago_baks_level", level);
+}
+
+function getSavedLevel(){
+    return parseInt(localStorage.getItem("gago_baks_level")) || 1;
+}
+
+function resetProgress(){
+    localStorage.removeItem("gago_baks_level");
+}
 
 // STATE
 let stage=0, totalDeaths=0, stageDeath=0;
@@ -116,6 +133,19 @@ let plats=[], traps=[], door={x:740,y:330,w:38,h:58};
 let hint='', flash='', flashT=0;
 let trapOn=false, lvData={};
 let running=false, raf=null;
+const skipBtn=document.getElementById("skipBtn");
+
+skipBtn.onclick=function(){
+
+    saveProgress(Math.min(stage+1,MAX_STAGE));
+
+    stageDeath=0;
+
+    skipBtn.style.display="none";
+
+    loadStage(stage+1);
+
+};
 
 // ENTITIES
 function mkE(x,y,w,h,sp,jp){return{x,y,vx:0,vy:0,w,h,sp:sp||SPD,jp:jp||JP,g:false};}
@@ -148,6 +178,9 @@ function hit(e,r){return e.x<r.x+r.w&&e.x+e.w>r.x&&e.y<r.y+r.h&&e.y+e.h>r.y}
 // KILL
 function kill(){
   totalDeaths++; stageDeath++;
+  if(stageDeath>=20){
+    skipBtn.style.display="block";
+}
   setFlash('WASTED! ☠');
   reloadStage();
   if(stageDeath%5===0){
@@ -185,6 +218,7 @@ function setFlash(m){flash=m;flashT=160}
 
 // STAGE LOADER
 function loadStage(n){
+  skipBtn.style.display="none";
   stage=n; stageDeath=0; hint=''; trapOn=false; lvData={};
   door.w=38; door.h=58;
   resetE();
@@ -1001,7 +1035,7 @@ function startGame(){
   document.getElementById('intro').style.display='none';
   document.getElementById('outro').style.display='none';
   totalDeaths=0; running=true;
-  loadStage(1);
+  loadStage(getSavedLevel());
   if(raf)cancelAnimationFrame(raf);
   raf=requestAnimationFrame(loop);
 }
@@ -1030,6 +1064,7 @@ function loop(){
   if(flashT>0) flashT--;
 
   if(hit(baks,{x:door.x,y:door.y,w:door.w,h:door.h})){
+    saveProgress(Math.min(stage+1, MAX_STAGE));
     setFlash(`✅ STAGE ${stage} CLEAR!`);
     loadStage(stage+1);
     raf=requestAnimationFrame(loop);
